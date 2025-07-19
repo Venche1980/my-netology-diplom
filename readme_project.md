@@ -22,10 +22,13 @@ netology_pd_diplom/
 │   ├── serializers.py     # Сериализаторы DRF
 │   ├── urls.py            # URL маршруты
 │   ├── signals.py         # Сигналы для отправки email
-│   └── admin.py           # Админ панель
+│   ├── admin.py           # Админ панель
+│   ├── apps.py            # Конфигурация приложения
+│   └── tests.py           # Тесты (пока пустой)
 ├── netology_pd_diplom/    # Настройки проекта
 │   ├── settings.py
-│   └── urls.py
+│   ├── urls.py
+│   └── wsgi.py            # WSGI конфигурация
 ├── data/                  # Примеры YAML файлов
 └── requirements.txt       # Зависимости
 ```

@@ -11,6 +11,8 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
+# Указываем Django какой файл настроек использовать
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'netology_pd_diplom.settings')
 
+# Создаем WSGI приложение для веб-сервера
 application = get_wsgi_application()
