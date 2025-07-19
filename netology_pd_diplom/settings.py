@@ -75,6 +75,7 @@ WSGI_APPLICATION = 'netology_pd_diplom.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+
 DATABASES = {
 
     # 'default': {
@@ -128,8 +129,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Кастомная модель пользователя
 AUTH_USER_MODEL = 'backend.User'
 
+# Настройки почты
+# TODO: В продакшене использовать переменные окружения для паролей
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_USE_TLS = True
 
@@ -140,20 +144,24 @@ EMAIL_PORT = '465'
 EMAIL_USE_SSL = True
 SERVER_EMAIL = EMAIL_HOST_USER
 
+# Настройки Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 40,
+    'PAGE_SIZE': 40, # Количество элементов на странице
 
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer', # Веб-интерфейс для API
 
     ),
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # 'rest_framework.authentication.SessionAuthentication',
         # 'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication', # Токен-аутентификация
     ),
 
 }
+
+# Используем BigAutoField для всех моделей по умолчанию
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
