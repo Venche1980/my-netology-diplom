@@ -1,0 +1,108 @@
+shop: DNS
+categories:
+  - id: 224
+    name: Смартфоны
+  - id: 2
+    name: Компьютеры
+  - id: 3
+    name: Ноутбуки
+  - id: 5
+    name: Телевизоры
+
+goods:
+  - id: 5216292
+    category: 224
+    model: samsung/galaxy-s23
+    name: Смартфон Samsung Galaxy S23 256GB (черный фантом)
+    price: 75000
+    price_rrc: 79990
+    quantity: 12
+    parameters:
+      "Диагональ (дюйм)": 6.1
+      "Разрешение (пикс)": 2340x1080
+      "Встроенная память (Гб)": 256
+      "Цвет": черный фантом
+  - id: 5216293
+    category: 224
+    model: xiaomi/13-pro
+    name: Смартфон Xiaomi 13 Pro 256GB (черный)
+    price: 85000
+    price_rrc: 89990
+    quantity: 8
+    parameters:
+      "Диагональ (дюйм)": 6.73
+      "Разрешение (пикс)": 3200x1440
+      "Встроенная память (Гб)": 256
+      "Цвет": черный
+  - id: 5216294
+    category: 2
+    model: pc/gaming-rtx4060
+    name: Компьютер игровой с RTX 4060
+    price: 95000
+    price_rrc: 99990
+    quantity: 5
+    parameters:
+      "Процессор": Intel Core i5-13400F
+      "Видеокарта": NVIDIA RTX 4060
+      "Оперативная память (Гб)": 16
+      "SSD (Гб)": 512
+  - id: 5216295
+    category: 2
+    model: pc/office-basic
+    name: Компьютер для офиса базовый
+    price: 35000
+    price_rrc: 39990
+    quantity: 15
+    parameters:
+      "Процессор": Intel Core i3-12100
+      "Видеокарта": Встроенная
+      "Оперативная память (Гб)": 8
+      "SSD (Гб)": 256
+  - id: 5216296
+    category: 3
+    model: laptop/asus-vivobook
+    name: Ноутбук ASUS VivoBook 15
+    price: 45000
+    price_rrc: 49990
+    quantity: 10
+    parameters:
+      "Диагональ (дюйм)": 15.6
+      "Процессор": Intel Core i5-1135G7
+      "Оперативная память (Гб)": 8
+      "SSD (Гб)": 512
+  - id: 5216297
+    category: 3
+    model: laptop/lenovo-thinkpad
+    name: Ноутбук Lenovo ThinkPad E14
+    price: 65000
+    price_rrc: 69990
+    quantity: 7
+    parameters:
+      "Диагональ (дюйм)": 14
+      "Процессор": AMD Ryzen 5 5500U
+      "Оперативная память (Гб)": 16
+      "SSD (Гб)": 512
+  - id: 5216298
+    category: 5
+    model: tv/samsung-crystal-uhd
+    name: Телевизор Samsung Crystal UHD 55"
+    price: 45000
+    price_rrc: 49990
+    quantity: 6
+    parameters:
+      "Диагональ (дюйм)": 55
+      "Разрешение": 4K UHD
+      "Smart TV": Да
+      "HDR": HDR10+
+  - id: 5216299
+    category: 5
+    model: tv/lg-nanocell
+    name: Телевизор LG NanoCell 50"
+    price: 40000
+    price_rrc: 44990
+    quantity: 8
+    parameters:
+      "Диагональ (дюйм)": 50
+      "Разрешение": 4K UHD
+      "Smart TV": Да
+      "HDR": HDR10 Pro

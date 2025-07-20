@@ -1,0 +1,119 @@
+shop: М.Видео
+categories:
+  - id: 224
+    name: Смартфоны
+  - id: 15
+    name: Аксессуары
+  - id: 4
+    name: Бытовая техника
+  - id: 5
+    name: Телевизоры
+
+goods:
+  - id: 6316292
+    category: 224
+    model: apple/iphone-15
+    name: Смартфон Apple iPhone 15 128GB (черный)
+    price: 85000
+    price_rrc: 89990
+    quantity: 20
+    parameters:
+      "Диагональ (дюйм)": 6.1
+      "Разрешение (пикс)": 2532x1170
+      "Встроенная память (Гб)": 128
+      "Цвет": черный
+  - id: 6316293
+    category: 224
+    model: google/pixel-8
+    name: Смартфон Google Pixel 8 128GB (обсидиан)
+    price: 65000
+    price_rrc: 69990
+    quantity: 5
+    parameters:
+      "Диагональ (дюйм)": 6.2
+      "Разрешение (пикс)": 2400x1080
+      "Встроенная память (Гб)": 128
+      "Цвет": обсидиан
+  - id: 6316294
+    category: 15
+    model: airpods/pro-2
+    name: Наушники Apple AirPods Pro 2
+    price: 22000
+    price_rrc: 24990
+    quantity: 25
+    parameters:
+      "Тип": Внутриканальные
+      "Подключение": Bluetooth
+      "Шумоподавление": Активное
+      "Время работы": до 6 часов
+  - id: 6316295
+    category: 15
+    model: case/iphone-15
+    name: Чехол для iPhone 15 (прозрачный)
+    price: 1500
+    price_rrc: 1990
+    quantity: 50
+    parameters:
+      "Материал": Силикон
+      "Совместимость": iPhone 15
+      "Цвет": прозрачный
+  - id: 6316296
+    category: 4
+    model: dyson/v15-detect
+    name: Пылесос Dyson V15 Detect Absolute
+    price: 65000
+    price_rrc: 69990
+    quantity: 4
+    parameters:
+      "Тип": Беспроводной
+      "Мощность всасывания (Вт)": 230
+      "Время работы (мин)": 60
+      "Объем контейнера (л)": 0.77
+  - id: 6316297
+    category: 4
+    model: bosch/serie4-dishwasher
+    name: Посудомоечная машина Bosch Serie 4
+    price: 45000
+    price_rrc: 49990
+    quantity: 3
+    parameters:
+      "Вместимость (комплектов)": 13
+      "Класс энергопотребления": A++
+      "Уровень шума (дБ)": 46
+      "Программ": 6
+  - id: 6316298
+    category: 4
+    model: samsung/addwash-ww90
+    name: Стиральная машина Samsung AddWash 9кг
+    price: 55000
+    price_rrc: 59990
+    quantity: 5
+    parameters:
+      "Загрузка (кг)": 9
+      "Скорость отжима (об/мин)": 1400
+      "Класс энергопотребления": A+++
+      "Технология": AddWash
+  - id: 6316299
+    category: 5
+    model: sony/bravia-xr-65
+    name: Телевизор Sony BRAVIA XR 65"
+    price: 120000
+    price_rrc: 129990
+    quantity: 2
+    parameters:
+      "Диагональ (дюйм)": 65
+      "Разрешение": 4K UHD
+      "Процессор": Cognitive Processor XR
+      "HDR": HDR10, Dolby Vision
+  - id: 6316300
+    category: 5
+    model: philips/ambilight-55
+    name: Телевизор Philips Ambilight 55"
+    price: 65000
+    price_rrc: 69990
+    quantity: 4
+    parameters:
+      "Диагональ (дюйм)": 55
+      "Разрешение": 4K UHD
+      "Технология": Ambilight 3-sided
+      "Smart TV": Android TV
