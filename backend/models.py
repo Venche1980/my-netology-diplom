@@ -200,6 +200,8 @@ class ProductInfo(models.Model):
             models.UniqueConstraint(fields=['product', 'shop', 'external_id'], name='unique_product_info'),
         ]
 
+    def __str__(self):
+        return f'{self.product.name} - {self.shop.name} ({self.price} руб.)'
 
 class Parameter(models.Model):
     """
@@ -240,6 +242,8 @@ class ProductParameter(models.Model):
             models.UniqueConstraint(fields=['product_info', 'parameter'], name='unique_product_parameter'),
         ]
 
+    def __str__(self):
+        return f'{self.parameter.name}: {self.value}'
 
 class Contact(models.Model):
     """
@@ -321,6 +325,8 @@ class OrderItem(models.Model):
             models.UniqueConstraint(fields=['order_id', 'product_info'], name='unique_order_item'),
         ]
 
+    def __str__(self):
+        return f'{self.product_info} - {self.quantity} шт.'
 
 class ConfirmEmailToken(models.Model):
     """
