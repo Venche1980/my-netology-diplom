@@ -15,8 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from backend.admin_views import import_products_view
+
+# Настройка заголовков админки
+admin.site.site_header = "Администрирование магазина"
+admin.site.site_title = "Магазин"
+admin.site.index_title = "Панель управления"
 
 urlpatterns = [
+    path('admin/import-products/', import_products_view, name='import_products'),
     path('admin/', admin.site.urls),
     path('api/v1/', include('backend.urls', namespace='backend'))
 ]

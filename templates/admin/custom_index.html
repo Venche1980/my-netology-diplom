@@ -1,0 +1,22 @@
+{% extends "admin/index.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <table>
+            <caption>
+                <a href="#" class="section">Специальные действия</a>
+            </caption>
+            <tr>
+                <th scope="row">
+                    <a href="{% url 'import_products' %}">Импорт товаров из YAML</a>
+                </th>
+                <td>Загрузить товары из внешнего YAML файла</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+{{ block.super }}
+{% endblock %}

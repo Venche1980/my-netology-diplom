@@ -165,3 +165,11 @@ REST_FRAMEWORK = {
 
 # Используем BigAutoField для всех моделей по умолчанию
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Настройки Celery
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # URL брокера сообщений Redis
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'  # Хранилище результатов
+CELERY_ACCEPT_CONTENT = ['json']  # Допустимые форматы данных
+CELERY_TASK_SERIALIZER = 'json'  # Формат сериализации задач
+CELERY_RESULT_SERIALIZER = 'json'  # Формат сериализации результатов
+CELERY_TIMEZONE = TIME_ZONE  # Часовой пояс

@@ -1,0 +1,72 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}Импорт товаров{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; Импорт товаров
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Импорт товаров из YAML файла</h1>
+
+<div class="module">
+    <form method="post" action="{% url 'import_products' %}">
+        {% csrf_token %}
+
+        <div class="form-row">
+            <label for="id_shop">Магазин:</label>
+            <select name="shop_id" id="id_shop" required>
+                <option value="">---------</option>
+                {% for shop in shops %}
+                    <option value="{{ shop.id }}">{{ shop.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-row">
+            <label for="id_url">URL файла YAML:</label>
+            <input type="url" name="url" id="id_url" required
+                   placeholder="https://example.com/products.yaml"
+                   style="width: 50%;">
+            <p class="help">Введите URL адрес YAML файла с товарами</p>
+        </div>
+
+        <div class="submit-row">
+            <input type="submit" value="Начать импорт" class="default">
+        </div>
+    </form>
+</div>
+
+<div class="module">
+    <h2>Формат YAML файла</h2>
+    <pre style="background: #f8f8f8; padding: 10px; border: 1px solid #ddd;">
+shop: Название магазина
+categories:
+  - id: 1
+    name: Категория
+goods:
+  - id: 1
+    category: 1
+    model: model_name
+    name: Название товара
+    price: 1000
+    price_rrc: 1200
+    quantity: 10
+    parameters:
+      "Параметр": значение
+    </pre>
+</div>
+
+{% if messages %}
+<div class="messagelist">
+    {% for message in messages %}
+        <div class="{% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,3 +1,4 @@
+# backend/signals.py
 """
 Сигналы Django для отправки уведомлений.
 
@@ -5,16 +6,18 @@
 - Отправки email при регистрации пользователя
 - Отправки email при сбросе пароля
 - Отправки email при создании нового заказа
+
+Использует Celery для асинхронной отправки писем.
 """
 from typing import Type
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
 from django.db.models.signals import post_save
 from django.dispatch import receiver, Signal
 from django_rest_passwordreset.signals import reset_password_token_created
 
 from backend.models import ConfirmEmailToken, User
+from backend.tasks import send_email
 
 # Кастомные сигналы
 new_user_registered = Signal()  # Срабатывает при регистрации нового пользователя
@@ -32,19 +35,12 @@ def password_reset_token_created(sender, instance, reset_password_token, **kwarg
     :param kwargs:
     :return:
     """
-    # send an e-mail to the user
-
-    msg = EmailMultiAlternatives(
-        # title:
-        f"Password Reset Token for {reset_password_token.user}",
-        # message:
-        reset_password_token.key,
-        # from:
-        settings.EMAIL_HOST_USER,
-        # to:
-        [reset_password_token.user.email]
+    # Отправляем email асинхронно через Celery
+    send_email.delay(
+        subject=f"Password Reset Token for {reset_password_token.user}",
+        message=reset_password_token.key,
+        recipient_list=[reset_password_token.user.email]
     )
-    msg.send()
 
 
 @receiver(post_save, sender=User)
@@ -59,18 +55,12 @@ def new_user_registered_signal(sender: Type[User], instance: User, created: bool
         # Создаем или получаем токен подтверждения для пользователя
         token, _ = ConfirmEmailToken.objects.get_or_create(user_id=instance.pk)
 
-        # Формируем и отправляем письмо
-        msg = EmailMultiAlternatives(
-            # title:
-            f"Password Reset Token for {instance.email}",
-            # message:
-            token.key,
-            # from:
-            settings.EMAIL_HOST_USER,
-            # to:
-            [instance.email]
+        # Отправляем email асинхронно через Celery
+        send_email.delay(
+            subject=f"Email Confirmation Token for {instance.email}",
+            message=token.key,
+            recipient_list=[instance.email]
         )
-        msg.send()
 
 
 @receiver(new_order)
@@ -85,15 +75,9 @@ def new_order_signal(user_id, **kwargs):
     # Получаем пользователя
     user = User.objects.get(id=user_id)
 
-    # Формируем и отправляем письмо
-    msg = EmailMultiAlternatives(
-        # title:
-        f"Обновление статуса заказа",
-        # message:
-        'Заказ сформирован',
-        # from:
-        settings.EMAIL_HOST_USER,
-        # to:
-        [user.email]
+    # Отправляем email асинхронно через Celery
+    send_email.delay(
+        subject="Обновление статуса заказа",
+        message='Заказ сформирован',
+        recipient_list=[user.email]
     )
-    msg.send()
