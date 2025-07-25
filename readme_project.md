@@ -28,15 +28,15 @@ netology_pd_diplom/
 │   ├── admin_views.py     # Дополнительные views для админки
 │   ├── tasks.py           # Celery задачи
 │   ├── apps.py            # Конфигурация приложения
-│   ├── tests.py           # Тесты (пока пустой)
+│   ├── tests.py           # Тесты для основного функционала
 │   └── management/        # Команды управления
 │       └── commands/
 │           └── load_shop_data.py  # Команда загрузки данных
 ├── netology_pd_diplom/    # Настройки проекта
 │   ├── __init__.py        # Инициализация Celery
 │   ├── celery_app.py      # Конфигурация Celery
-│   ├── settings.py
-│   ├── urls.py
+│   ├── settings.py        # Настройки Django проекта
+│   ├── urls.py            # Главные URL маршруты
 │   └── wsgi.py            # WSGI конфигурация
 ├── templates/             # Шаблоны
 │   └── admin/
@@ -46,7 +46,12 @@ netology_pd_diplom/
 │   ├── shop1.yaml        # Данные магазина "Связной"
 │   ├── shop2.yaml        # Данные магазина "DNS"
 │   └── shop3.yaml        # Данные магазина "М.Видео"
-└── requirements.txt       # Зависимости
+├── Dockerfile             # Конфигурация Docker образа
+├── docker-compose.yml     # Конфигурация Docker сервисов
+├── .dockerignore         # Исключения для Docker
+├── requirements.txt       # Зависимости Python
+├── manage.py             # Утилита управления Django
+└── README_PROJECT.md     # Документация проекта
 ```
 
 
@@ -270,6 +275,74 @@ OK
 
 Каждая точка означает успешно пройденный тест.
 
+## Docker
+
+Проект настроен для запуска в Docker контейнерах.
+
+### Что включено:
+- **PostgreSQL** - база данных
+- **Redis** - брокер сообщений для Celery
+- **Django** - основное приложение
+- **Celery Worker** - обработчик асинхронных задач
+
+### Запуск с Docker:
+
+1. **Установите Docker и Docker Compose**:
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+   - Проверьте установку: `docker --version`
+
+2. **Запустите все сервисы**:
+```bash
+# Для новых версий Docker (28.x и выше)
+docker compose up --build
+
+# Или запустить в фоновом режиме
+docker compose up -d --build
+
+# Для старых версий используйте docker-compose (с дефисом)
+```
+
+3. **Выполните миграции** (в новом терминале):
+```bash
+docker compose exec web python manage.py migrate
+```
+
+4. **Создайте суперпользователя**:
+```bash
+docker compose exec web python manage.py createsuperuser
+```
+
+5. **Загрузите тестовые данные**:
+```bash
+docker compose exec web python manage.py load_shop_data data/shop1.yaml --user_email shop1@example.com
+docker compose exec web python manage.py load_shop_data data/shop2.yaml --user_email shop2@example.com
+docker compose exec web python manage.py load_shop_data data/shop3.yaml --user_email shop3@example.com
+```
+
+### Доступ к сервисам:
+- **Django приложение**: http://localhost:8000
+- **Админка**: http://localhost:8000/admin/
+- **PostgreSQL**: localhost:5432
+- **Redis**: localhost:6379
+
+### Полезные команды Docker:
+```bash
+# Посмотреть логи
+docker compose logs -f
+
+# Остановить все контейнеры
+docker compose down
+
+# Остановить и удалить volumes (БД)
+docker compose down -v
+
+# Запустить тесты
+docker compose exec web python manage.py test
+
+# Войти в контейнер
+docker compose exec web bash
+```
+
 ## Решение проблем
 
 ### Если Celery не запускается:
@@ -301,5 +374,5 @@ python manage.py shell
 - [x] Настроить расширенную админку
 - [x] Интегрировать Celery для асинхронных задач
 - [x] Добавить тесты
-- [ ] Настроить Docker
+- [x] Настроить Docker
 - [ ] Добавить документацию API (Swagger)

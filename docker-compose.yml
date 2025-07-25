@@ -1,0 +1,52 @@
+services:
+  # База данных PostgreSQL
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=diplom_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    # Убираем порты или используем другие
+    # ports:
+    #   - "5432:5432"
+
+  # Redis для Celery
+  redis:
+    image: redis:7
+    # Убираем порты или используем другие
+    # ports:
+    #   - "6379:6379"
+
+  # Django приложение
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/diplom_db
+      - REDIS_URL=redis://redis:6379/0
+
+  # Celery worker
+  celery:
+    build: .
+    command: celery -A netology_pd_diplom.celery_app:app worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/diplom_db
+      - REDIS_URL=redis://redis:6379/0
+
+volumes:
+  postgres_data:
