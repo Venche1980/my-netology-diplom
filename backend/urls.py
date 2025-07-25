@@ -8,8 +8,11 @@ API endpoints для backend приложения.
 - /basket - управление корзиной
 - /order - управление заказами
 """
-from django.urls import path
+from django.urls import path, re_path
 from django_rest_passwordreset.views import reset_password_request_token, reset_password_confirm
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
 from backend.views import PartnerUpdate, RegisterAccount, LoginAccount, CategoryView, ShopView, ProductInfoView, \
     BasketView, \
@@ -17,7 +20,24 @@ from backend.views import PartnerUpdate, RegisterAccount, LoginAccount, Category
 
 app_name = 'backend'
 
+# Настройка Swagger
+schema_view = get_schema_view(
+    openapi.Info(
+        title="API Сервис заказа товаров",
+        default_version='v1',
+        description="API для заказа товаров из нескольких магазинов",
+        contact=openapi.Contact(email="admin@example.com"),
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
+
 urlpatterns = [
+    # Документация API
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('docs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
     # Партнерские endpoints (для магазинов)
     path('partner/update', PartnerUpdate.as_view(), name='partner-update'),  # Загрузка прайса
     path('partner/state', PartnerState.as_view(), name='partner-state'),  # Управление статусом магазина
