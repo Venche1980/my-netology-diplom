@@ -46,12 +46,18 @@ netology_pd_diplom/
 │   ├── shop1.yaml        # Данные магазина "Связной"
 │   ├── shop2.yaml        # Данные магазина "DNS"
 │   └── shop3.yaml        # Данные магазина "М.Видео"
-├── Dockerfile             # Конфигурация Docker образа
-├── docker-compose.yml     # Конфигурация Docker сервисов
+├── .env.example          # Пример файла с переменными окружения
+├── .gitignore            # Исключения для Git
 ├── .dockerignore         # Исключения для Docker
-├── requirements.txt       # Зависимости Python
+├── Dockerfile            # Конфигурация Docker образа
+├── docker-compose.yml    # Конфигурация Docker сервисов
+├── Makefile              # Команды для автоматизации
+├── pyproject.toml        # Конфигурация Black и isort
+├── setup.cfg             # Конфигурация flake8
+├── requirements.txt      # Зависимости Python
 ├── manage.py             # Утилита управления Django
-└── README_PROJECT.md     # Документация проекта
+├── README.md             # Краткая документация
+└── readme_project.md     # Полная документация проекта
 ```
 
 ## Установка и запуск

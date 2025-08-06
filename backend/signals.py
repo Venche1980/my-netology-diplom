@@ -11,9 +11,9 @@
 """
 from typing import Type
 
-from django.conf import settings
 from django.db.models.signals import post_save
-from django.dispatch import receiver, Signal
+from django.dispatch import Signal, receiver
+
 from django_rest_passwordreset.signals import reset_password_token_created
 
 from backend.models import ConfirmEmailToken, User
@@ -39,7 +39,7 @@ def password_reset_token_created(sender, instance, reset_password_token, **kwarg
     send_email.delay(
         subject=f"Password Reset Token for {reset_password_token.user}",
         message=reset_password_token.key,
-        recipient_list=[reset_password_token.user.email]
+        recipient_list=[reset_password_token.user.email],
     )
 
 
@@ -57,9 +57,7 @@ def new_user_registered_signal(sender: Type[User], instance: User, created: bool
 
         # Отправляем email асинхронно через Celery
         send_email.delay(
-            subject=f"Email Confirmation Token for {instance.email}",
-            message=token.key,
-            recipient_list=[instance.email]
+            subject=f"Email Confirmation Token for {instance.email}", message=token.key, recipient_list=[instance.email]
         )
 
 
@@ -76,8 +74,4 @@ def new_order_signal(user_id, **kwargs):
     user = User.objects.get(id=user_id)
 
     # Отправляем email асинхронно через Celery
-    send_email.delay(
-        subject="Обновление статуса заказа",
-        message='Заказ сформирован',
-        recipient_list=[user.email]
-    )
+    send_email.delay(subject="Обновление статуса заказа", message="Заказ сформирован", recipient_list=[user.email])

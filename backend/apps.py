@@ -1,6 +1,7 @@
 """
 Конфигурация приложения backend.
 """
+
 from django.apps import AppConfig
 
 
@@ -10,8 +11,9 @@ class BackendConfig(AppConfig):
 
     Содержит основную бизнес-логику API сервиса для заказа товаров.
     """
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'backend'
+
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "backend"
 
     def ready(self):
         """
@@ -20,4 +22,4 @@ class BackendConfig(AppConfig):
         Здесь импортируем сигналы, чтобы они были зарегистрированы.
         """
         # Импорт сигналов необходим для их регистрации
-        import backend.signals
+        import backend.signals  # noqa: F401
