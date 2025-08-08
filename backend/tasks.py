@@ -1,6 +1,12 @@
-# backend/tasks.py
 """
 Асинхронные задачи Celery для приложения backend.
+
+Модуль содержит задачи для:
+- Асинхронной отправки email уведомлений
+- Асинхронного импорта товаров из YAML файлов
+
+Все задачи выполняются в фоновом режиме через Celery worker,
+что позволяет избежать блокировки основного потока выполнения.
 """
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -19,15 +25,25 @@ User = get_user_model()
 @shared_task
 def send_email(subject, message, recipient_list):
     """
-    Асинхронная отправка email.
+    Асинхронная отправка email через Celery.
+
+    Используется для отправки уведомлений о регистрации, сбросе пароля,
+    изменении статуса заказа и других событиях.
 
     Args:
         subject (str): Тема письма
         message (str): Текст письма
-        recipient_list (list): Список получателей
+        recipient_list (list): Список email адресов получателей
 
     Returns:
-        bool: True если успешно, False если ошибка
+        bool: True если письмо отправлено успешно, False при ошибке
+
+    Example:
+        >>> send_email.delay(
+        ...     subject="Подтверждение регистрации",
+        ...     message="Ваш код: 123456",
+        ...     recipient_list=["user@example.com"]
+        ... )
     """
     try:
         msg = EmailMultiAlternatives(
@@ -45,12 +61,42 @@ def do_import(url, user_id):
     """
     Асинхронный импорт товаров из YAML файла.
 
+    Загружает файл по URL, парсит YAML формат и обновляет каталог товаров магазина.
+    Старые товары магазина удаляются перед импортом новых.
+    После успешного импорта отправляет email уведомление.
+
     Args:
-        url (str): URL файла для импорта
+        url (str): URL адрес YAML файла с товарами
         user_id (int): ID пользователя-магазина
 
     Returns:
-        dict: Результат импорта
+        dict: Словарь с результатом операции
+            - status (bool): Успешность операции
+            - message (str): Описание результата
+            - shop (str): Название магазина
+            - error (str): Описание ошибки (если есть)
+
+    YAML Format:
+        shop: Название магазина
+        categories:
+          - id: 1
+            name: Категория
+        goods:
+          - id: 1
+            category: 1
+            model: model_name
+            name: Название товара
+            price: 1000
+            price_rrc: 1200
+            quantity: 10
+            parameters:
+              "Параметр": значение
+
+    Example:
+        >>> do_import.delay(
+        ...     url="https://example.com/products.yaml",
+        ...     user_id=1
+        ... )
     """
     try:
         user = User.objects.get(id=user_id)

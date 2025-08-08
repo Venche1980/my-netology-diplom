@@ -1,5 +1,12 @@
 """
-Конфигурация Celery для проекта.
+Конфигурация Celery для проекта netology_pd_diplom.
+
+Celery используется для выполнения асинхронных задач:
+- Отправка email уведомлений
+- Импорт товаров из YAML файлов
+- Другие длительные операции
+
+Настройки Celery загружаются из Django settings с префиксом CELERY_.
 """
 
 import os
@@ -21,5 +28,16 @@ app.autodiscover_tasks()
 
 @app.task(bind=True)
 def debug_task(self):
-    """Тестовая задача для отладки"""
-    print(f"Request: {self.request!r}")
+    """
+    Тестовая задача для отладки Celery.
+
+    Используется для проверки работоспособности Celery.
+    Выводит информацию о запросе в консоль.
+
+    Args:
+        self: Экземпляр задачи
+
+    Example:
+        >>> debug_task.delay()
+    """
+    print(f'Request: {self.request!r}')

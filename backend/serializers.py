@@ -1,4 +1,10 @@
-# Верстальщик
+"""
+Сериализаторы Django REST Framework для API.
+
+Модуль содержит сериализаторы для преобразования моделей Django
+в JSON формат и обратно. Включает валидацию данных и настройку
+отображения полей в API ответах.
+"""
 from rest_framework import serializers
 
 from backend.models import Category, Contact, Order, OrderItem, Product, ProductInfo, ProductParameter, Shop, User

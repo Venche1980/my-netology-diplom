@@ -29,14 +29,28 @@ USER_TYPE_CHOICES = (
 
 class UserManager(BaseUserManager):
     """
-    Миксин для управления пользователями
+    Менеджер для кастомной модели пользователя.
+
+    Переопределяет стандартные методы создания пользователей для работы
+    с email в качестве основного идентификатора вместо username.
     """
 
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
         """
-        Create and save a user with the given username, email, and password.
+        Создание и сохранение пользователя с email и паролем.
+
+        Args:
+            email (str): Email адрес пользователя
+            password (str): Пароль пользователя
+            **extra_fields: Дополнительные поля модели User
+
+        Returns:
+            User: Созданный пользователь
+
+        Raises:
+            ValueError: Если email не указан
         """
         if not email:
             raise ValueError("The given email must be set")
@@ -47,11 +61,36 @@ class UserManager(BaseUserManager):
         return user
 
     def create_user(self, email, password=None, **extra_fields):
+        """
+        Создание обычного пользователя.
+
+        Args:
+            email (str): Email адрес
+            password (str, optional): Пароль
+            **extra_fields: Дополнительные поля
+
+        Returns:
+            User: Созданный пользователь
+        """
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
+        """
+        Создание суперпользователя.
+
+        Args:
+            email (str): Email адрес
+            password (str): Пароль (обязателен для суперпользователя)
+            **extra_fields: Дополнительные поля
+
+        Returns:
+            User: Созданный суперпользователь
+
+        Raises:
+            ValueError: Если is_staff или is_superuser не True
+        """
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
@@ -66,7 +105,18 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     """
-    Стандартная модель пользователей
+    Кастомная модель пользователя.
+
+    Расширяет стандартную модель Django, используя email как основной
+    идентификатор для входа. Поддерживает два типа пользователей:
+    покупатели и магазины.
+
+    Attributes:
+        email (EmailField): Уникальный email адрес
+        company (CharField): Название компании
+        position (CharField): Должность
+        type (CharField): Тип пользователя ('buyer' или 'shop')
+        is_active (BooleanField): Активен ли пользователь (по умолчанию False)
     """
 
     REQUIRED_FIELDS = []
@@ -309,10 +359,6 @@ class Order(models.Model):
     def __str__(self):
         return str(self.dt)
 
-    # @property
-    # def sum(self):
-    #     return self.ordered_items.aggregate(total=Sum("quantity"))["total"]
-
 
 class OrderItem(models.Model):
     """
@@ -353,6 +399,11 @@ class ConfirmEmailToken(models.Model):
 
     Создается при регистрации пользователя и отправляется на email.
     После подтверждения токен удаляется.
+
+    Attributes:
+        user (ForeignKey): Связь с пользователем
+        key (CharField): Уникальный токен
+        created_at (DateTimeField): Время создания токена
     """
 
     objects = models.manager.Manager()
@@ -363,7 +414,15 @@ class ConfirmEmailToken(models.Model):
 
     @staticmethod
     def generate_key():
-        """generates a pseudo random code using os.urandom and binascii.hexlify"""
+        """
+        Генерация псевдослучайного токена.
+
+        Использует os.urandom и binascii.hexlify для создания
+        криптографически стойкого токена.
+
+        Returns:
+            str: Сгенерированный токен
+        """
         return get_token_generator().generate_token()
 
     user = models.ForeignKey(
@@ -379,9 +438,27 @@ class ConfirmEmailToken(models.Model):
     key = models.CharField(_("Key"), max_length=64, db_index=True, unique=True)
 
     def save(self, *args, **kwargs):
+        """
+        Переопределение метода save для автогенерации ключа.
+
+        Если ключ не задан, генерирует новый перед сохранением.
+
+        Args:
+            *args: Позиционные аргументы
+            **kwargs: Именованные аргументы
+
+        Returns:
+            Model: Сохраненный объект
+        """
         if not self.key:
             self.key = self.generate_key()
         return super(ConfirmEmailToken, self).save(*args, **kwargs)
 
     def __str__(self):
+        """
+        Строковое представление токена.
+
+        Returns:
+            str: Описание токена с указанием пользователя
+        """
         return "Password reset token for user {user}".format(user=self.user)

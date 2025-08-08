@@ -1,6 +1,14 @@
-# backend/management/commands/load_shop_data.py
 """
-Команда для загрузки данных магазина из YAML файла.
+Django management команда для загрузки данных магазина из YAML файла.
+
+Используется для начальной загрузки тестовых данных или обновления
+каталога товаров магазина из локального файла.
+
+Usage:
+    python manage.py load_shop_data <file_path> [--user_email <email>]
+
+Example:
+    python manage.py load_shop_data data/shop1.yaml --user_email shop1@example.com
 """
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
@@ -14,13 +22,40 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
+    """
+    Команда для загрузки данных магазина из YAML файла.
+
+    Создает или обновляет магазин, категории, товары и их параметры
+    на основе данных из YAML файла.
+    """
     help = "Загрузка данных магазина из YAML файла"
 
     def add_arguments(self, parser):
+        """
+        Определение аргументов командной строки.
+
+        Args:
+            parser: Парсер аргументов
+        """
         parser.add_argument("file_path", type=str, help="Путь к YAML файлу")
         parser.add_argument("--user_email", type=str, help="Email пользователя-магазина", default="shop@example.com")
 
     def handle(self, *args, **options):
+        """
+        Основная логика команды.
+
+        Выполняет следующие действия:
+        1. Создает или получает пользователя-магазин
+        2. Читает и парсит YAML файл
+        3. Создает или обновляет магазин
+        4. Загружает категории и связывает с магазином
+        5. Удаляет старые товары магазина
+        6. Загружает новые товары с параметрами
+
+        Args:
+            *args: Позиционные аргументы
+            **options: Именованные аргументы из командной строки
+        """
         file_path = options["file_path"]
         user_email = options["user_email"]
 
