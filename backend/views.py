@@ -4,7 +4,9 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import IntegrityError
 from django.db.models import F, Q, Sum
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+
+from yaml import dump
 
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import ListAPIView
@@ -340,6 +342,84 @@ class PartnerUpdate(APIView):
                 return JsonResponse({"Status": True, "Message": "Импорт запущен", "TaskID": task.id})
 
         return JsonResponse({"Status": False, "Errors": "Не указаны все необходимые аргументы"})
+
+
+class PartnerExport(APIView):
+    """
+    API endpoint для экспорта товаров магазина.
+
+    Позволяет магазину выгрузить свои товары в YAML формате.
+
+    Methods:
+        GET: Получить товары магазина в YAML формате
+
+    Requires:
+        Authentication: Token
+        User type: 'shop'
+    """
+
+    def get(self, request, *args, **kwargs):
+        """
+        Экспорт товаров магазина в YAML.
+
+        Returns:
+            Response: YAML файл с товарами или ошибка
+        """
+        if not request.user.is_authenticated:
+            return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        if request.user.type != 'shop':
+            return JsonResponse({'Status': False, 'Error': 'Только для магазинов'}, status=403)
+
+        # Получаем магазин пользователя
+        try:
+            shop = Shop.objects.get(user=request.user)
+        except Shop.DoesNotExist:
+            return JsonResponse({'Status': False, 'Error': 'Магазин не найден'})
+
+        # Формируем данные для экспорта
+        data = {
+            'shop': shop.name,
+            'categories': [],
+            'goods': []
+        }
+
+        # Получаем категории магазина
+        categories = Category.objects.filter(shops=shop).distinct()
+        for category in categories:
+            data['categories'].append({
+                'id': category.id,
+                'name': category.name
+            })
+
+        # Получаем товары магазина
+        products = ProductInfo.objects.filter(shop=shop)
+        for product_info in products:
+            item = {
+                'id': product_info.external_id,
+                'category': product_info.product.category.id,
+                'model': product_info.model,
+                'name': product_info.product.name,
+                'price': product_info.price,
+                'price_rrc': product_info.price_rrc,
+                'quantity': product_info.quantity,
+                'parameters': {}
+            }
+
+            # Добавляем параметры товара
+            for param in product_info.product_parameters.all():
+                item['parameters'][param.parameter.name] = param.value
+
+            data['goods'].append(item)
+
+        # Конвертируем в YAML
+        yaml_data = dump(data, allow_unicode=True, default_flow_style=False)
+
+        # Возвращаем как файл
+        response = HttpResponse(yaml_data, content_type='text/yaml')
+        response['Content-Disposition'] = f'attachment; filename="{shop.name}_products.yaml"'
+
+        return response
 
 
 class PartnerState(APIView):

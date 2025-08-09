@@ -7,12 +7,13 @@ API сервис предоставляет возможность заказа 
 ### Основные возможности:
 - Регистрация и авторизация пользователей (покупателей и магазинов)
 - Загрузка товаров магазинами через YAML файлы
+- **Экспорт товаров магазина в YAML формате**
 - Просмотр каталога товаров с фильтрацией
 - Управление корзиной
 - Оформление заказов
 - Email уведомления о статусе заказов
-- **Расширенная админка Django для управления всеми аспектами магазина**
-- **Асинхронная обработка задач через Celery**
+- Расширенная админка Django для управления всеми аспектами магазина
+- Асинхронная обработка задач через Celery
 
 ## Структура проекта
 
@@ -62,13 +63,31 @@ netology_pd_diplom/
 
 ## Установка и запуск
 
+### Требования
+- Python 3.11+
+- PostgreSQL 15+
+- Redis 7+
+- Docker и Docker Compose (для контейнерного запуска)
+
 ### 1. Клонировать репозиторий:
 ```bash
 git clone <url>
 cd netology_pd_diplom
 ```
 
-### 2. Создать виртуальное окружение:
+### 2. Настройка переменных окружения:
+```bash
+# Копировать пример файла переменных окружения
+cp .env.example .env
+
+# Отредактировать .env и заполнить реальными значениями:
+# - SECRET_KEY - секретный ключ Django
+# - Параметры базы данных
+# - Параметры email
+nano .env
+```
+
+### 3. Создать виртуальное окружение (для локальной разработки):
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
@@ -76,12 +95,12 @@ source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate  # Windows
 ```
 
-### 3. Установить зависимости:
+### 4. Установить зависимости:
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Установить и запустить Redis:
+### 5. Установить и запустить Redis (для локальной разработки):
 ```bash
 # Ubuntu/Debian/WSL2
 sudo apt update
@@ -93,7 +112,7 @@ redis-cli ping
 # Должен ответить: PONG
 ```
 
-### 5. Настроить базу данных:
+### 6. Настроить базу данных:
 
 #### Для PostgreSQL:
 ```bash
@@ -105,39 +124,25 @@ GRANT ALL PRIVILEGES ON DATABASE diplom_db TO diplom_user;
 \q
 ```
 
-Обновить `settings.py`:
-```python
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'diplom_db',
-        'USER': 'postgres',
-        'PASSWORD': '123',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
-```
-
-### 6. Выполнить миграции:
+### 7. Выполнить миграции:
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 7. Создать суперпользователя:
+### 8. Создать суперпользователя:
 ```bash
 python manage.py createsuperuser
 ```
 
-### 8. Загрузить тестовые данные:
+### 9. Загрузить тестовые данные:
 ```bash
 python manage.py load_shop_data data/shop1.yaml --user_email shop1@example.com
 python manage.py load_shop_data data/shop2.yaml --user_email shop2@example.com
 python manage.py load_shop_data data/shop3.yaml --user_email shop3@example.com
 ```
 
-### 9. Запуск проекта:
+### 10. Запуск проекта:
 
 Для полноценной работы нужно запустить в разных терминалах:
 
@@ -156,6 +161,80 @@ python -m celery -A netology_pd_diplom.celery_app:app worker -l info
 **Терминал 3 - Redis (если не запущен как сервис):**
 ```bash
 redis-server
+```
+
+## Docker
+
+Проект настроен для запуска в Docker контейнерах.
+
+### Что включено:
+- **PostgreSQL** - база данных
+- **Redis** - брокер сообщений для Celery
+- **Django** - основное приложение
+- **Celery Worker** - обработчик асинхронных задач
+
+### Запуск с Docker:
+
+1. **Установите Docker и Docker Compose**:
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+   - Проверьте установку: `docker --version`
+
+2. **Настройте переменные окружения**:
+```bash
+cp .env.example .env
+# Отредактируйте .env файл с вашими настройками
+```
+
+3. **Запустите все сервисы**:
+```bash
+# Сборка и запуск контейнеров
+docker compose up --build
+
+# Или запустить в фоновом режиме
+docker compose up -d --build
+```
+
+4. **Выполните миграции** (в новом терминале):
+```bash
+docker compose exec web python manage.py migrate
+```
+
+5. **Создайте суперпользователя**:
+```bash
+docker compose exec web python manage.py createsuperuser
+```
+
+6. **Загрузите тестовые данные**:
+```bash
+docker compose exec web python manage.py load_shop_data data/shop1.yaml --user_email shop1@example.com
+docker compose exec web python manage.py load_shop_data data/shop2.yaml --user_email shop2@example.com
+docker compose exec web python manage.py load_shop_data data/shop3.yaml --user_email shop3@example.com
+```
+
+### Доступ к сервисам:
+- **Django приложение**: http://localhost:8000
+- **Админка**: http://localhost:8000/admin/
+- **API документация (Swagger)**: http://localhost:8000/api/v1/swagger/
+
+### Полезные команды Docker:
+```bash
+# Посмотреть логи
+docker compose logs -f
+
+# Остановить все контейнеры
+docker compose down
+
+# Остановить и удалить volumes (БД)
+docker compose down -v
+
+# Запустить тесты
+docker compose exec web python manage.py test
+
+# Войти в контейнер
+docker compose exec web bash
+
+# Django shell в контейнере
+docker compose exec web python manage.py shell
 ```
 
 ## Расширенная админка Django
@@ -223,6 +302,79 @@ redis-server
 - `POST /api/v1/partner/update` - Загрузка прайса (асинхронно через Celery)
 - `GET/POST /api/v1/partner/state` - Статус приема заказов
 - `GET /api/v1/partner/orders` - Заказы магазина
+- **`GET /api/v1/partner/export`** - Экспорт товаров в YAML
+
+## Экспорт товаров (НОВОЕ)
+
+### Описание
+Магазины могут экспортировать свой каталог товаров в YAML формате для резервного копирования или переноса данных.
+
+### Использование
+
+#### 1. Через API:
+```bash
+# Получить токен авторизации
+curl -X POST http://localhost:8000/api/v1/user/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "shop@example.com", "password": "yourpassword"}'
+
+# Экспортировать товары (замените YOUR_TOKEN на полученный токен)
+curl -X GET http://localhost:8000/api/v1/partner/export \
+  -H "Authorization: Token YOUR_TOKEN" \
+  -o products.yaml
+```
+
+#### 2. Через Python:
+```python
+import requests
+
+# Авторизация
+login = requests.post('http://localhost:8000/api/v1/user/login', json={
+    'email': 'shop@example.com',
+    'password': 'yourpassword'
+})
+
+if login.status_code == 200:
+    token = login.json()['Token']
+    
+    # Экспорт товаров
+    export = requests.get(
+        'http://localhost:8000/api/v1/partner/export',
+        headers={'Authorization': f'Token {token}'}
+    )
+    
+    if export.status_code == 200:
+        with open('exported_products.yaml', 'wb') as f:
+            f.write(export.content)
+        print("Товары успешно экспортированы!")
+    else:
+        print(f"Ошибка: {export.text}")
+```
+
+### Формат экспортированного файла
+Экспортированный YAML файл имеет тот же формат, что и для импорта:
+```yaml
+shop: Название магазина
+categories:
+  - id: 1
+    name: Категория
+goods:
+  - id: 1
+    category: 1
+    model: model_name
+    name: Название товара
+    price: 1000
+    price_rrc: 1200
+    quantity: 10
+    parameters:
+      "Параметр": значение
+```
+
+### Совместимость
+Экспортированный файл полностью совместим с функцией импорта, что позволяет:
+- Создавать резервные копии каталога
+- Переносить товары между магазинами
+- Использовать для тестирования
 
 ## Формат YAML для загрузки товаров
 
@@ -267,6 +419,9 @@ python manage.py test backend.tests.UserRegistrationTest
 
 # Запустить с сохранением тестовой БД (для отладки)
 python manage.py test --keepdb
+
+# В Docker
+docker compose exec web python manage.py test
 ```
 
 ### Результаты тестов:
@@ -276,103 +431,6 @@ python manage.py test --keepdb
 ----------------------------------------------------------------------
 Ran 7 tests in X.XXXs
 OK
-```
-
-Каждая точка означает успешно пройденный тест.
-
-## Docker
-
-Проект настроен для запуска в Docker контейнерах.
-
-### Что включено:
-- **PostgreSQL** - база данных
-- **Redis** - брокер сообщений для Celery
-- **Django** - основное приложение
-- **Celery Worker** - обработчик асинхронных задач
-
-### Запуск с Docker:
-
-1. **Установите Docker и Docker Compose**:
-   - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-   - Проверьте установку: `docker --version`
-
-2. **Запустите все сервисы**:
-```bash
-# Для новых версий Docker (28.x и выше)
-docker compose up --build
-
-# Или запустить в фоновом режиме
-docker compose up -d --build
-
-# Для старых версий используйте docker-compose (с дефисом)
-```
-
-3. **Выполните миграции** (в новом терминале):
-```bash
-docker compose exec web python manage.py migrate
-```
-
-4. **Создайте суперпользователя**:
-```bash
-docker compose exec web python manage.py createsuperuser
-```
-
-5. **Загрузите тестовые данные**:
-```bash
-docker compose exec web python manage.py load_shop_data data/shop1.yaml --user_email shop1@example.com
-docker compose exec web python manage.py load_shop_data data/shop2.yaml --user_email shop2@example.com
-docker compose exec web python manage.py load_shop_data data/shop3.yaml --user_email shop3@example.com
-```
-
-### Доступ к сервисам:
-- **Django приложение**: http://localhost:8000
-- **Админка**: http://localhost:8000/admin/
-- **PostgreSQL**: localhost:5432
-- **Redis**: localhost:6379
-
-### Полезные команды Docker:
-```bash
-# Посмотреть логи
-docker compose logs -f
-
-# Остановить все контейнеры
-docker compose down
-
-# Остановить и удалить volumes (БД)
-docker compose down -v
-
-# Запустить тесты
-docker compose exec web python manage.py test
-
-# Войти в контейнер
-docker compose exec web bash
-```
-
-## Решение проблем
-
-### Если Celery не запускается:
-```bash
-# Попробуйте альтернативный запуск
-python -m celery -A netology_pd_diplom.celery_app:app worker -l info
-```
-
-### Если Redis не работает:
-```bash
-# Проверить статус
-sudo service redis-server status
-
-# Перезапустить
-sudo service redis-server restart
-```
-
-### Очистка всех товаров:
-```bash
-python manage.py shell
->>> from backend.models import ProductInfo, Product, ProductParameter
->>> ProductParameter.objects.all().delete()
->>> ProductInfo.objects.all().delete()
->>> Product.objects.all().delete()
->>> exit()
 ```
 
 ## API Документация (Swagger)
@@ -399,9 +457,131 @@ python manage.py shell
 5. Нажмите "Execute"
 6. Увидите реальный ответ от API
 
+## Качество кода
+
+Проект следует стандартам PEP8 и использует инструменты для поддержания качества кода:
+
+### Инструменты форматирования:
+- **Black** - автоматическое форматирование кода
+- **isort** - сортировка импортов
+- **flake8** - проверка соответствия PEP8
+
+### Использование:
+```bash
+# Установка инструментов разработки
+pip install black flake8 isort
+
+# Автоматическое форматирование
+make format
+
+# Проверка кода
+make lint
+
+# Форматирование + проверка
+make check
+```
+
+### Конфигурация:
+- `pyproject.toml` - настройки Black и isort
+- `setup.cfg` - настройки flake8
+- Максимальная длина строки: 120 символов
+
+## Документация кода
+
+Весь код проекта полностью документирован:
+- **Docstrings** для всех классов и методов
+- **Комментарии** для сложной логики
+- **Type hints** где необходимо
+- **Примеры использования** в docstrings
+
+### Стиль документации:
+- Google-style docstrings
+- Описание параметров и возвращаемых значений
+- Примеры использования для публичных API
+
+## Безопасность
+
+### Переменные окружения
+Все чувствительные данные хранятся в переменных окружения:
+- Секретный ключ Django
+- Пароли базы данных
+- Учетные данные email
+
+### Файл .env
+1. Скопируйте `.env.example` в `.env`
+2. Заполните все переменные реальными значениями
+3. **НИКОГДА** не коммитьте `.env` файл в репозиторий
+
+### Переменные окружения:
+```bash
+# Django
+SECRET_KEY=          # Секретный ключ Django
+DEBUG=               # True/False - режим отладки
+
+# База данных (локальная)
+DB_NAME=             # Имя базы данных
+DB_USER=             # Пользователь БД
+DB_PASSWORD=         # Пароль БД
+DB_HOST=             # Хост БД
+DB_PORT=             # Порт БД
+
+# Email
+EMAIL_HOST_USER=     # Email для отправки писем
+EMAIL_HOST_PASSWORD= # Пароль от email
+
+# Docker PostgreSQL
+POSTGRES_DB=         # Имя БД в Docker
+POSTGRES_USER=       # Пользователь PostgreSQL
+POSTGRES_PASSWORD=   # Пароль PostgreSQL
+```
+
+## Решение проблем
+
+### Если Celery не запускается:
+```bash
+# Попробуйте альтернативный запуск
+python -m celery -A netology_pd_diplom.celery_app:app worker -l info
+```
+
+### Если Redis не работает:
+```bash
+# Проверить статус
+sudo service redis-server status
+
+# Перезапустить
+sudo service redis-server restart
+```
+
+### Если Docker контейнеры не запускаются:
+```bash
+# Проверить логи
+docker compose logs web
+docker compose logs celery
+
+# Пересобрать образы
+docker compose down
+docker compose build --no-cache
+docker compose up
+```
+
+### Очистка всех товаров:
+```bash
+python manage.py shell
+>>> from backend.models import ProductInfo, Product, ProductParameter
+>>> ProductParameter.objects.all().delete()
+>>> ProductInfo.objects.all().delete()
+>>> Product.objects.all().delete()
+>>> exit()
+```
+
 ## TODO (продвинутая часть)
 - [x] Настроить расширенную админку
 - [x] Интегрировать Celery для асинхронных задач
 - [x] Добавить тесты
 - [x] Настроить Docker
 - [x] Добавить документацию API (Swagger)
+- [x] Вынести чувствительные данные в переменные окружения
+- [x] Привести код в соответствие с PEP8
+- [x] Добавить полную документацию (docstrings)
+- [x] Реализовать экспорт товаров
+- [ ] Реализовать отправку накладной администратору

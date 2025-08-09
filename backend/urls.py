@@ -25,6 +25,7 @@ from backend.views import (
     LoginAccount,
     OrderView,
     PartnerOrders,
+    PartnerExport,
     PartnerState,
     PartnerUpdate,
     ProductInfoView,
@@ -55,6 +56,7 @@ urlpatterns = [
     path("partner/update", PartnerUpdate.as_view(), name="partner-update"),  # Загрузка прайса
     path("partner/state", PartnerState.as_view(), name="partner-state"),  # Управление статусом магазина
     path("partner/orders", PartnerOrders.as_view(), name="partner-orders"),  # Просмотр заказов магазина
+    path('partner/export', PartnerExport.as_view(), name='partner-export'), # Экспорт товаров
     # Управление пользователями
     path("user/register", RegisterAccount.as_view(), name="user-register"),  # Регистрация
     path("user/register/confirm", ConfirmAccount.as_view(), name="user-register-confirm"),  # Подтверждение email
