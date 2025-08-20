@@ -171,30 +171,25 @@ class YAMLImportTest(TestCase):
     def test_buyer_cannot_upload(self):
         """Тест что покупатель не может загружать товары."""
         # Создаем покупателя
-        User.objects.create_user(
-            email='buyer2@example.com',
-            password='TestPassword123',
-            type='buyer',
-            is_active=True
-        )
+        User.objects.create_user(email="buyer2@example.com", password="TestPassword123", type="buyer", is_active=True)
 
         # Авторизуемся как покупатель
         response = self.client.post(
-            reverse('backend:user-login'),
-            {'email': 'buyer2@example.com', 'password': 'TestPassword123'},
-            format='json'  # Добавляем format='json'
+            reverse("backend:user-login"),
+            {"email": "buyer2@example.com", "password": "TestPassword123"},
+            format="json",  # Добавляем format='json'
         )
 
         # Проверяем успешность авторизации
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('Token', response.json())
+        self.assertIn("Token", response.json())
 
-        token = response.json()['Token']
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token}')
+        token = response.json()["Token"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
 
         # Пытаемся загрузить
-        url = reverse('backend:partner-update')
-        response = self.client.post(url, {'url': 'http://example.com/test.yaml'})
+        url = reverse("backend:partner-update")
+        response = self.client.post(url, {"url": "http://example.com/test.yaml"})
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.json()['Error'], 'Только для магазинов')
+        self.assertEqual(response.json()["Error"], "Только для магазинов")

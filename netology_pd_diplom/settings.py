@@ -143,15 +143,20 @@ STATIC_URL = "/static/"
 AUTH_USER_MODEL = "backend.User"
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_USE_TLS = True
 
-EMAIL_HOST = "smtp.mail.ru"
+EMAIL_HOST = "smtp.gmail.com"
 
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
-EMAIL_PORT = "465"
-EMAIL_USE_SSL = True
+EMAIL_PORT = 587
+EMAIL_USE_SSL = False
+EMAIL_USE_TLS = True
 SERVER_EMAIL = EMAIL_HOST_USER
+
+EMAIL_TIMEOUT = 30
+
+# Email администратора для получения накладных
+ADMIN_EMAIL = config("ADMIN_EMAIL", default=EMAIL_HOST_USER)
 
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",

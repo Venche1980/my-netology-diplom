@@ -4,9 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import IntegrityError
 from django.db.models import F, Q, Sum
-from django.http import JsonResponse, HttpResponse
-
-from yaml import dump
+from django.http import HttpResponse, JsonResponse
 
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import ListAPIView
@@ -14,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from setuptools._distutils.util import strtobool
 from ujson import loads as load_json
+from yaml import dump
 
 from backend.models import (
     Category,
@@ -34,6 +33,7 @@ from backend.serializers import (
     UserSerializer,
 )
 from backend.signals import new_order, new_user_registered
+from backend.tasks import send_invoice_to_admin
 
 
 class RegisterAccount(APIView):
@@ -366,58 +366,51 @@ class PartnerExport(APIView):
             Response: YAML файл с товарами или ошибка
         """
         if not request.user.is_authenticated:
-            return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
+            return JsonResponse({"Status": False, "Error": "Log in required"}, status=403)
 
-        if request.user.type != 'shop':
-            return JsonResponse({'Status': False, 'Error': 'Только для магазинов'}, status=403)
+        if request.user.type != "shop":
+            return JsonResponse({"Status": False, "Error": "Только для магазинов"}, status=403)
 
         # Получаем магазин пользователя
         try:
             shop = Shop.objects.get(user=request.user)
         except Shop.DoesNotExist:
-            return JsonResponse({'Status': False, 'Error': 'Магазин не найден'})
+            return JsonResponse({"Status": False, "Error": "Магазин не найден"})
 
         # Формируем данные для экспорта
-        data = {
-            'shop': shop.name,
-            'categories': [],
-            'goods': []
-        }
+        data = {"shop": shop.name, "categories": [], "goods": []}
 
         # Получаем категории магазина
         categories = Category.objects.filter(shops=shop).distinct()
         for category in categories:
-            data['categories'].append({
-                'id': category.id,
-                'name': category.name
-            })
+            data["categories"].append({"id": category.id, "name": category.name})
 
         # Получаем товары магазина
         products = ProductInfo.objects.filter(shop=shop)
         for product_info in products:
             item = {
-                'id': product_info.external_id,
-                'category': product_info.product.category.id,
-                'model': product_info.model,
-                'name': product_info.product.name,
-                'price': product_info.price,
-                'price_rrc': product_info.price_rrc,
-                'quantity': product_info.quantity,
-                'parameters': {}
+                "id": product_info.external_id,
+                "category": product_info.product.category.id,
+                "model": product_info.model,
+                "name": product_info.product.name,
+                "price": product_info.price,
+                "price_rrc": product_info.price_rrc,
+                "quantity": product_info.quantity,
+                "parameters": {},
             }
 
             # Добавляем параметры товара
             for param in product_info.product_parameters.all():
-                item['parameters'][param.parameter.name] = param.value
+                item["parameters"][param.parameter.name] = param.value
 
-            data['goods'].append(item)
+            data["goods"].append(item)
 
         # Конвертируем в YAML
         yaml_data = dump(data, allow_unicode=True, default_flow_style=False)
 
         # Возвращаем как файл
-        response = HttpResponse(yaml_data, content_type='text/yaml')
-        response['Content-Disposition'] = f'attachment; filename="{shop.name}_products.yaml"'
+        response = HttpResponse(yaml_data, content_type="text/yaml")
+        response["Content-Disposition"] = f'attachment; filename="{shop.name}_products.yaml"'
 
         return response
 
@@ -596,7 +589,10 @@ class OrderView(APIView):
                     return JsonResponse({"Status": False, "Errors": "Неправильно указаны аргументы"})
                 else:
                     if is_updated:
-                        new_order.send(sender=self.__class__, user_id=request.user.id)
+                        new_order.send(sender=self.__class__, user_id=request.user.id, order_id=request.data["id"])
+
+                        # Отправляем накладную администратору
+                        send_invoice_to_admin.delay(request.data["id"])
                         return JsonResponse({"Status": True})
 
         return JsonResponse({"Status": False, "Errors": "Не указаны все необходимые аргументы"})

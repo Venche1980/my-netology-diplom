@@ -40,4 +40,4 @@ def debug_task(self):
     Example:
         >>> debug_task.delay()
     """
-    print(f'Request: {self.request!r}')
+    print(f"Request: {self.request!r}")

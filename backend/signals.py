@@ -1,4 +1,3 @@
-# backend/signals.py
 """
 Сигналы Django для отправки уведомлений.
 
@@ -9,6 +8,7 @@
 
 Использует Celery для асинхронной отправки писем.
 """
+
 from typing import Type
 
 from django.db.models.signals import post_save
@@ -16,8 +16,8 @@ from django.dispatch import Signal, receiver
 
 from django_rest_passwordreset.signals import reset_password_token_created
 
-from backend.models import ConfirmEmailToken, User
-from backend.tasks import send_email
+from backend.models import ConfirmEmailToken, Order, User
+from backend.tasks import send_email, send_invoice_to_admin
 
 # Кастомные сигналы
 new_user_registered = Signal()  # Срабатывает при регистрации нового пользователя
@@ -62,16 +62,27 @@ def new_user_registered_signal(sender: Type[User], instance: User, created: bool
 
 
 @receiver(new_order)
-def new_order_signal(user_id, **kwargs):
+def new_order_signal(user_id, order_id=None, **kwargs):
     """
     Отправляем письмо при изменении статуса заказа.
-
-    Вызывается вручную из view при подтверждении заказа.
-
-    :param user_id: ID пользователя, создавшего заказ
+    Также отправляем накладную администратору.
     """
+
     # Получаем пользователя
     user = User.objects.get(id=user_id)
 
-    # Отправляем email асинхронно через Celery
+    # Отправляем уведомление пользователю
     send_email.delay(subject="Обновление статуса заказа", message="Заказ сформирован", recipient_list=[user.email])
+
+    # Если передан ID заказа, отправляем накладную администратору
+    if order_id:
+        send_invoice_to_admin.delay(order_id)
+
+
+@receiver(post_save, sender=Order)
+def order_status_changed(sender, instance, created, **kwargs):
+    """
+    Отправляем накладную при изменении заказа на статус 'new'
+    """
+    if instance.state == "new" and not created:
+        send_invoice_to_admin.delay(instance.id)

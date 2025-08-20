@@ -8,47 +8,42 @@
 Все задачи выполняются в фоновом режиме через Celery worker,
 что позволяет избежать блокировки основного потока выполнения.
 """
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 from celery import shared_task
 from requests import get
 from yaml import Loader
 from yaml import load as load_yaml
 
-from backend.models import Category, Parameter, Product, ProductInfo, ProductParameter, Shop
+from backend.models import Category, Order, Parameter, Product, ProductInfo, ProductParameter, Shop
 
 User = get_user_model()
 
 
 @shared_task
-def send_email(subject, message, recipient_list):
+def send_email(subject, message, recipient_list, html_content=None):
     """
     Асинхронная отправка email через Celery.
-
-    Используется для отправки уведомлений о регистрации, сбросе пароля,
-    изменении статуса заказа и других событиях.
 
     Args:
         subject (str): Тема письма
         message (str): Текст письма
         recipient_list (list): Список email адресов получателей
+        html_content (str): HTML версия письма (опционально)
 
     Returns:
         bool: True если письмо отправлено успешно, False при ошибке
-
-    Example:
-        >>> send_email.delay(
-        ...     subject="Подтверждение регистрации",
-        ...     message="Ваш код: 123456",
-        ...     recipient_list=["user@example.com"]
-        ... )
     """
     try:
         msg = EmailMultiAlternatives(
             subject=subject, body=message, from_email=settings.EMAIL_HOST_USER, to=recipient_list
         )
+        if html_content:
+            msg.attach_alternative(html_content, "text/html")
         msg.send()
         return True
     except Exception as e:
@@ -154,3 +149,49 @@ def do_import(url, user_id):
 
     except Exception as e:
         return {"status": False, "error": str(e)}
+
+
+@shared_task
+def send_invoice_to_admin(order_id):
+    """
+    Отправка накладной администратору при новом заказе.
+
+    Args:
+        order_id (int): ID заказа
+
+    Returns:
+        bool: True если отправлено успешно
+    """
+
+    try:
+        # Получаем заказ
+        order = Order.objects.get(id=order_id)
+
+        # Считаем общую сумму
+        total_sum = 0
+        for item in order.ordered_items.all():
+            item.total = item.quantity * item.product_info.price
+            total_sum += item.total
+
+        # Формируем HTML письмо
+        html_content = render_to_string("email/invoice.html", {"order": order, "total_sum": total_sum})
+
+        # Отправляем письмо администратору
+        msg = EmailMultiAlternatives(
+            subject=f"Новый заказ №{order.id}",
+            body=f"Поступил новый заказ №{order.id}",  # Текстовая версия
+            from_email=settings.EMAIL_HOST_USER,
+            to=[settings.ADMIN_EMAIL],
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+
+        print(f"Накладная для заказа {order_id} отправлена на {settings.ADMIN_EMAIL}")
+        return True
+
+    except Order.DoesNotExist:
+        print(f"Заказ {order_id} не найден")
+        return False
+    except Exception as e:
+        print(f"Ошибка отправки накладной: {str(e)}")
+        return False

@@ -10,6 +10,7 @@ Usage:
 Example:
     python manage.py load_shop_data data/shop1.yaml --user_email shop1@example.com
 """
+
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
@@ -28,6 +29,7 @@ class Command(BaseCommand):
     Создает или обновляет магазин, категории, товары и их параметры
     на основе данных из YAML файла.
     """
+
     help = "Загрузка данных магазина из YAML файла"
 
     def add_arguments(self, parser):

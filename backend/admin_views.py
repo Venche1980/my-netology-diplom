@@ -4,6 +4,7 @@
 Содержит кастомные представления для расширения функциональности админки,
 включая страницу импорта товаров из YAML файлов.
 """
+
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ValidationError
@@ -49,15 +50,15 @@ def import_products_view(request):
         - error: При ошибке валидации или отсутствии данных
         - success: При успешном запуске импорта с ID задачи
     """
-    if request.method == 'POST':
+    if request.method == "POST":
         # Получаем данные из формы
-        url = request.POST.get('url')
-        shop_id = request.POST.get('shop_id')
+        url = request.POST.get("url")
+        shop_id = request.POST.get("shop_id")
 
         # Проверяем наличие обязательных полей
         if not url or not shop_id:
-            messages.error(request, 'Необходимо указать URL и магазин')
-            return redirect('admin:import_products')
+            messages.error(request, "Необходимо указать URL и магазин")
+            return redirect("admin:import_products")
 
         # Валидация URL
         validate_url = URLValidator()
@@ -81,7 +82,6 @@ def import_products_view(request):
 
         # Перенаправляем на список товаров
         return redirect("admin:backend_productinfo_changelist")
-
 
     # GET запрос - показываем форму импорта
     # Получаем только активные магазины (state=True)
